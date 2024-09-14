@@ -10,6 +10,16 @@ pub struct AuthQuery {
     shop: String,
 }
 
+#[utoipa::path(
+    get,
+    path = "/auth",
+    params(
+        ("shop" = String, Query, description = "Shopify store domain")
+    ),
+    responses(
+        (status = 302, description = "Redirect to Shopify OAuth page", content_type = "text/plain")
+    )
+)]
 pub async fn handle_auth(Query(query): Query<AuthQuery>) -> impl IntoResponse {
     let config = Config::from_env();
     let auth_url = shopify::build_auth_url(&query.shop, &config);
@@ -22,6 +32,19 @@ pub struct CallbackQuery {
     code: String,
 }
 
+
+#[utoipa::path(
+    get,
+    path = "/auth/callback",
+    params(
+        ("shop" = String, Query, description = "Shopify store domain"),
+        ("code" = String, Query, description = "Authorization code")
+    ),
+    responses(
+        (status = 200, description = "Successfully authenticated", content_type = "text/plain"),
+        (status = 400, description = "Authentication failed", content_type = "text/plain")
+    )
+)]
 pub async fn handle_callback(Query(query): Query<CallbackQuery>) -> impl IntoResponse {
     let config = Config::from_env();
     match shopify::exchange_code_for_token(&query.shop, &query.code, &config).await {
