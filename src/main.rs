@@ -3,14 +3,15 @@ use axum::Router;
 use dotenv::dotenv;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
+use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+mod api_docs;
 mod config;
 mod handlers;
 mod routes;
 mod services;
-mod api_docs;
 
 #[tokio::main]
 async fn main() {
@@ -31,6 +32,19 @@ async fn main() {
         )
     )]
     struct ApiDoc;
+
+    let filter = filter::Targets::new()
+        .with_target("tower_http::trace::on_response", Level::TRACE)
+        .with_target("tower_http::trace::on_request", Level::TRACE)
+        .with_target("tower_http::trace::make_span", Level::DEBUG)
+        .with_default(Level::INFO);
+
+    let tracing_layer = tracing_subscriber::fmt::layer();
+
+    tracing_subscriber::registry()
+        .with(tracing_layer)
+        .with(filter)
+        .init();
 
     let app = Router::new()
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
