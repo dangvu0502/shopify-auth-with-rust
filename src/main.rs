@@ -1,4 +1,4 @@
-use axum::Router;
+use axum::{body::Body, http::Request, middleware::{self, Next}, response::{IntoResponse, Redirect}, Router};
 
 use dotenv::dotenv;
 use tower_http::trace::{self, TraceLayer};
@@ -20,7 +20,6 @@ async fn main() {
     #[derive(OpenApi)]
     #[openapi(
         paths(
-            handlers::dashboard::handle_dashboard,
             handlers::auth::handle_auth,
             handlers::auth::handle_callback
         ),
@@ -48,16 +47,39 @@ async fn main() {
 
     let app = Router::new()
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .merge(routes::dashboard::dashboard_routes())
         .merge(routes::auth::auth_routes())
+        .layer(middleware::from_fn(auth_middleware)) 
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
         );
 
-    let addr = "localhost:8080";
+    let addr = "localhost:3000";
     println!("Server running at: {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
+}
+
+pub async fn auth_middleware(req: Request<Body>, next: Next) -> impl IntoResponse
+{
+    let path = req.uri().path();
+
+    // Bypass the auth middleware for specific routes
+    if path == "/auth" || path == "/auth/callback" {
+        return next.run(req).await;
+    }
+
+    if is_authenticated(&req) {
+        next.run(req).await
+    } else {
+        Redirect::temporary("/auth").into_response()
+    }
+}
+
+fn is_authenticated<B>(req: &Request<B>) -> bool {
+    if let Some(cookie) = req.headers().get("cookie") {
+        return cookie.to_str().unwrap_or("").contains("auth_token");
+    }
+    false
 }
