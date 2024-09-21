@@ -11,7 +11,7 @@ pub struct ShopQuery {
 pub fn build_auth_url(shop: &str, config: &Config) -> String {
     format!(
         "https://{}/admin/oauth/authorize?client_id={}&scope={}&redirect_uri={}/auth/callback",
-        shop, config.shopify_api_key, config.shopify_scopes, config.base_uri,
+        shop, config.shopify_api_key, config.shopify_scopes, config.backend_host,
     )
 }
 

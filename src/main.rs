@@ -54,8 +54,9 @@ async fn main() {
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
         );
-
-    let addr = "localhost:3000";
+    
+    let config = config::Config::from_env();
+    let addr = format!("{}:{}", config.backend_host, config.backend_port);
     println!("Server running at: {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();

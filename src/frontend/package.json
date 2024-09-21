@@ -4,8 +4,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
+    "build": "dotenv -e ../../.env vite build",
+    "dev": "dotenv -e ../../.env vite",
     "coverage": "vitest run --coverage"
   },
   "type": "module",
@@ -35,6 +35,7 @@
     "vite": "^5.4.0"
   },
   "devDependencies": {
+    "dotenv-cli": "^7.4.2",
     "@shopify/stylelint-polaris": "^12.0.0",
     "history": "^5.3.0",
     "jsdom": "^24.0.0",
