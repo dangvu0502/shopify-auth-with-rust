@@ -5,14 +5,6 @@ import { notFoundImage } from "../assets";
 export default function NotFound() {
   const { t } = useTranslation();
   return (
-    <Page>
-      <Card>
-        <Card.Section>
-          <EmptyState heading={t("NotFound.heading")} image={notFoundImage}>
-            <p>{t("NotFound.description")}</p>
-          </EmptyState>
-        </Card.Section>
-      </Card>
-    </Page>
+    <></>
   );
 }

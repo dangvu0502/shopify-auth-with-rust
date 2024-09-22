@@ -12,7 +12,6 @@ export default function App() {
     eager: true,
   });
   const { t } = useTranslation();
-
   return (
     <PolarisProvider>
       <BrowserRouter>
